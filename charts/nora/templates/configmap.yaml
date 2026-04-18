@@ -14,6 +14,19 @@ data:
     mode = {{ .Values.config.storage.mode | quote }}
     path = {{ .Values.config.storage.path | quote }}
 
+    {{- if or .Values.config.docker.upstreams .Values.config.docker.proxy_timeout }}
+    [docker]
+    proxy_timeout = {{ .Values.config.docker.proxy_timeout | default 60 }}
+    {{- range .Values.config.docker.upstreams }}
+
+    [[docker.upstreams]]
+    url = {{ .url | quote }}
+    {{- if .auth }}
+    auth = {{ .auth | quote }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+
     [gc]
     enabled = {{ .Values.config.gc.enabled }}
     interval = {{ .Values.config.gc.interval }}
