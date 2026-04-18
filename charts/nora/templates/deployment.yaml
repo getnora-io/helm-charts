@@ -79,6 +79,11 @@ spec:
             - name: config
               mountPath: /config
               readOnly: true
+            {{- if .Values.existingSecret }}
+            - name: secrets-config
+              mountPath: /config/secrets
+              readOnly: true
+            {{- end }}
             {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: /data
@@ -89,6 +94,11 @@ spec:
         - name: config
           configMap:
             name: {{ include "nora.fullname" . }}-config
+        {{- if .Values.existingSecret }}
+        - name: secrets-config
+          secret:
+            secretName: {{ .Values.existingSecret }}
+        {{- end }}
         {{- if .Values.persistence.enabled }}
         - name: data
           persistentVolumeClaim:
