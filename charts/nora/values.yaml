@@ -59,6 +59,14 @@ config:
   storage:
     mode: local
     path: /data/storage
+  docker:
+    proxy_timeout: 60
+    # -- Docker upstream registries for proxy/cache.
+    # Auth credentials should come from existingSecret, not inline here.
+    upstreams: []
+    #  - url: https://registry-1.docker.io
+    #  - url: https://private.registry.io
+    #    auth: "user:token"
   gc:
     enabled: true
     interval: 86400
@@ -66,6 +74,15 @@ config:
     enabled: false
     interval: 86400
     rules: []
+
+# -- Name of an existing Secret to mount as /config/secrets.toml.
+# Use this to keep registry credentials out of values.yaml.
+# The Secret should contain a key "secrets.toml" with TOML content, e.g.:
+#   [[docker.upstreams]]
+#   url = "https://private.registry.io"
+#   auth = "user:token"
+# These upstreams are merged with config.docker.upstreams (Secret wins for same URL).
+existingSecret: ""
 
 # -- Extra environment variables passed to the NORA container.
 env: {}
