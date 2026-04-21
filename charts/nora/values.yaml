@@ -84,15 +84,26 @@ config:
 # These upstreams are merged with config.docker.upstreams (Secret wins for same URL).
 existingSecret: ""
 
-# -- Extra environment variables passed to the NORA container.
-env: {}
-  # NORA_AUTH_ENABLED: "true"
-  # NORA_RATE_LIMIT_ENABLED: "true"
+# -- Extra environment variables for the NORA container.
+# Supports full Kubernetes env spec: plain values, secretKeyRef, configMapKeyRef.
+# Example:
+#   extraEnv:
+#     - name: NORA_S3_STORAGE_ACCESS_KEY
+#       valueFrom:
+#         secretKeyRef:
+#           name: my-s3-secret
+#           key: access-key
+#     - name: NORA_AUTH_ENABLED
+#       value: "true"
+extraEnv: []
 
-# -- Sensitive environment variables stored in a Secret.
-secrets: {}
-  # NORA_STORAGE_S3_ACCESS_KEY: ""
-  # NORA_STORAGE_S3_SECRET_KEY: ""
+# -- Additional envFrom entries for the NORA container.
+# Injects all keys from a Secret or ConfigMap as env vars.
+# Example:
+#   extraEnvFrom:
+#     - secretRef:
+#         name: nora-s3-credentials
+extraEnvFrom: []
 
 resources:
   requests:
