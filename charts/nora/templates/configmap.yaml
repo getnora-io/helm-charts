@@ -13,6 +13,11 @@ data:
     [storage]
     mode = {{ .Values.config.storage.mode | quote }}
     path = {{ .Values.config.storage.path | quote }}
+    {{- if eq .Values.config.storage.mode "s3" }}
+    s3_url = {{ .Values.config.storage.s3_url | quote }}
+    bucket = {{ .Values.config.storage.bucket | quote }}
+    s3_region = {{ .Values.config.storage.s3_region | default "us-east-1" | quote }}
+    {{- end }}
 
     {{- if or .Values.config.docker.upstreams .Values.config.docker.proxy_timeout }}
     [docker]
