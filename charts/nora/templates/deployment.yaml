@@ -61,10 +61,12 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.extraEnv }}
           env:
+            - name: NORA_CONFIG_PATH
+              value: /config/config.toml
+            {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- end }}
           {{- with .Values.extraEnvFrom }}
           envFrom:
             {{- toYaml . | nindent 12 }}
@@ -78,10 +80,8 @@ spec:
               mountPath: /config/secrets
               readOnly: true
             {{- end }}
-            {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: /data
-            {{- end }}
             - name: tmp
               mountPath: /tmp
       volumes:
@@ -93,11 +93,13 @@ spec:
           secret:
             secretName: {{ .Values.existingSecret }}
         {{- end }}
-        {{- if .Values.persistence.enabled }}
         - name: data
+          {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "nora.fullname" . }}-data
-        {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         - name: tmp
           emptyDir: {}
       {{- with .Values.nodeSelector }}

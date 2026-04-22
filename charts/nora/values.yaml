@@ -59,6 +59,12 @@ config:
   storage:
     mode: local
     path: /data/storage
+    # -- S3 endpoint URL (required when mode=s3)
+    s3_url: ""
+    # -- S3 bucket name (required when mode=s3)
+    bucket: ""
+    # -- S3 region
+    s3_region: "us-east-1"
   docker:
     proxy_timeout: 60
     # -- Docker upstream registries for proxy/cache.

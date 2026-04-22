@@ -52,7 +52,7 @@ helm install nora ./helm-charts/charts/nora/
 | `persistence.storageClass` | Storage class | `""` |
 | `persistence.accessModes` | Access modes | `[ReadWriteOnce]` |
 
-Set `persistence.enabled: false` when using S3 storage.
+Set `persistence.enabled: false` when using S3 storage. An emptyDir volume is used for `/data/` regardless, so audit log and metrics work in both modes.
 
 ### NORA Configuration
 
@@ -66,6 +66,10 @@ config:
   storage:
     mode: local       # or "s3"
     path: /data/storage
+    # S3 settings (used when mode: s3)
+    s3_url: ""
+    bucket: ""
+    s3_region: "us-east-1"
   gc:
     enabled: true
     interval: 86400
@@ -75,18 +79,49 @@ config:
     rules: []
 ```
 
-### Environment Variables and Secrets
+### Environment Variables
+
+Use `extraEnv` for plain values or references to Secrets/ConfigMaps:
 
 ```yaml
-env:
-  NORA_AUTH_ENABLED: "true"
-
-secrets:
-  NORA_STORAGE_S3_ACCESS_KEY: "your-key"
-  NORA_STORAGE_S3_SECRET_KEY: "your-secret"
+extraEnv:
+  - name: NORA_AUTH_ENABLED
+    value: "true"
+  - name: NORA_STORAGE_S3_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: nora-s3-credentials
+        key: access-key
+  - name: NORA_STORAGE_S3_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: nora-s3-credentials
+        key: secret-key
 ```
 
-Values in `secrets` are stored in a Kubernetes Secret and injected as env vars.
+Or inject all keys from a Secret at once with `extraEnvFrom`:
+
+```yaml
+extraEnvFrom:
+  - secretRef:
+      name: nora-s3-credentials
+```
+
+### Docker Upstream Credentials
+
+Use `existingSecret` for upstream registry auth:
+
+```yaml
+existingSecret: my-nora-upstreams
+```
+
+The Secret should contain a key `secrets.toml` with TOML content:
+
+```toml
+[[docker.upstreams]]
+url = "https://private.registry.io"
+auth = "user:token"
+```
 
 ### Resources
 
@@ -99,7 +134,7 @@ resources:
     memory: 512Mi
 ```
 
-## S3 Storage Example
+## S3 Storage
 
 ```yaml
 persistence:
@@ -108,15 +143,24 @@ persistence:
 config:
   storage:
     mode: s3
+    s3_url: "https://s3.amazonaws.com"
+    bucket: "my-registry"
+    s3_region: "eu-west-1"
 
-secrets:
-  NORA_STORAGE_S3_ACCESS_KEY: "AKIA..."
-  NORA_STORAGE_S3_SECRET_KEY: "wJal..."
-
-env:
-  NORA_STORAGE_S3_BUCKET: "my-registry"
-  NORA_STORAGE_S3_REGION: "eu-west-1"
+extraEnv:
+  - name: NORA_STORAGE_S3_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: nora-s3-credentials
+        key: access-key
+  - name: NORA_STORAGE_S3_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: nora-s3-credentials
+        key: secret-key
 ```
+
+> **Note:** Audit log is written to `/data/` (emptyDir when `persistence.enabled: false`). Audit data is ephemeral without persistence. For production with S3, consider a log aggregator (Fluentd/Promtail) to capture audit events from pod logs. Single replica recommended when using emptyDir for audit storage.
 
 ## Testing
 
