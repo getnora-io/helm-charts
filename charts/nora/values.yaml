@@ -45,7 +45,7 @@ ingress:
   #      - registry.example.com
 
 httpRoute:
-  enabled: true
+  enabled: false
   apiVersion: gateway.networking.k8s.io/v1
   kind: HTTPRoute
   annotations: {}
@@ -54,8 +54,8 @@ httpRoute:
   #  - name: shared-gateway
   #    namespace: gateway-system
   #    sectionName: http
-  hostnames:
-    - registry.example.com
+  hostnames: []
+  #  - registry.example.com
   extraRules: []
   rules:
     - matches:
