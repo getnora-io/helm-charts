@@ -44,6 +44,24 @@ ingress:
   #    hosts:
   #      - registry.example.com
 
+httpRoute:
+  enabled: false
+  annotations: {}
+  labels: {}
+  parentRefs: []
+  #  - name: shared-gateway
+  #    namespace: gateway-system
+  #    sectionName: http
+  hostnames: []
+  #  - registry.example.com
+  extraRules: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters: []
+
 persistence:
   enabled: true
   size: 10Gi
