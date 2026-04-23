@@ -9,6 +9,9 @@ data:
     [server]
     host = {{ .Values.config.server.host | quote }}
     port = {{ .Values.config.server.port | default 4000 }}
+    {{- if .Values.config.server.public_url }}
+    public_url = {{ .Values.config.server.public_url | quote }}
+    {{- end }}
 
     [storage]
     mode = {{ .Values.config.storage.mode | quote }}
