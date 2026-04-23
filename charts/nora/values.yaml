@@ -75,7 +75,8 @@ config:
     host: "0.0.0.0"
     port: 4000
     # -- Public URL for UI install commands and auth realm.
-    # Set this when NORA is behind Ingress/reverse proxy.
+    # Auto-derived from ingress/httpRoute if empty.
+    # Set explicitly for non-standard setups (CDN, reverse proxy, NodePort).
     # Example: "https://registry.example.com"
     public_url: ""
   storage:

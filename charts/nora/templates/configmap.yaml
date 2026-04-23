@@ -11,6 +11,12 @@ data:
     port = {{ .Values.config.server.port | default 4000 }}
     {{- if .Values.config.server.public_url }}
     public_url = {{ .Values.config.server.public_url | quote }}
+    {{- else if and .Values.ingress.enabled .Values.ingress.hosts }}
+    {{- $host := (index .Values.ingress.hosts 0).host }}
+    {{- $scheme := ternary "https" "http" (gt (len .Values.ingress.tls) 0) }}
+    public_url = {{ printf "%s://%s" $scheme $host | quote }}
+    {{- else if and .Values.httpRoute.enabled .Values.httpRoute.hostnames }}
+    public_url = {{ printf "https://%s" (index .Values.httpRoute.hostnames 0) | quote }}
     {{- end }}
 
     [storage]
