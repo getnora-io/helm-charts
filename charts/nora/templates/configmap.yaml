@@ -19,6 +19,16 @@ data:
     public_url = {{ printf "https://%s" (index .Values.httpRoute.hostnames 0) | quote }}
     {{- end }}
 
+    {{- if .Values.config.registries }}
+
+    [registries]
+    {{- if kindIs "string" .Values.config.registries.enable }}
+    enable = {{ .Values.config.registries.enable | quote }}
+    {{- else if kindIs "slice" .Values.config.registries.enable }}
+    enable = [{{- range $i, $v := .Values.config.registries.enable }}{{- if $i }}, {{ end }}{{ $v | quote }}{{- end }}]
+    {{- end }}
+    {{- end }}
+
     [storage]
     mode = {{ .Values.config.storage.mode | quote }}
     path = {{ .Values.config.storage.path | quote }}

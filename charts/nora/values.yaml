@@ -79,6 +79,8 @@ config:
     # Set explicitly for non-standard setups (CDN, reverse proxy, NodePort).
     # Example: "https://registry.example.com"
     public_url: ""
+  registries:
+    enable: "all"
   storage:
     mode: local
     path: /data/storage

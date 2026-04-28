@@ -162,6 +162,48 @@ extraEnv:
 
 > **Note:** Audit log is written to `/data/` (emptyDir when `persistence.enabled: false`). Audit data is ephemeral without persistence. For production with S3, consider a log aggregator (Fluentd/Promtail) to capture audit events from pod logs. Single replica recommended when using emptyDir for audit storage.
 
+## Registires
+
+Enable all registries:
+```yaml
+config:
+  registries:
+    enable: "all"
+```
+
+Enable all except specific ones:
+```yaml
+config:
+  registries:
+    enable:
+      - "all"
+      - "-maven"
+```
+
+Enable only what you need:
+```yaml
+config:
+  registries:
+    enable:
+      - "docker"
+      - "pypi"     
+```
+
+### Supported registries:
+- `docker`
+- `maven`
+- `npm`
+- `pypi`
+- `cargo`
+- `go`
+- `raw`
+- `rubygems`
+- `terraform`
+- `ansible`
+- `nuget`
+- `pub`
+- `conan`
+
 ## Testing
 
 ```bash
