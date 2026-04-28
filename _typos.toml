@@ -1,0 +1,4 @@
+[default.extend-words]
+# Helm template syntax
+nindent = "nindent"
+fullname = "fullname"
