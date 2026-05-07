@@ -2,8 +2,8 @@ apiVersion: v2
 name: nora
 description: NORA — a container registry proxy with caching and garbage collection
 type: application
-version: 0.3.4
-appVersion: "0.8.0"
+version: 0.3.5
+appVersion: "0.8.2"
 annotations:
   artifacthub.io/category: integration-delivery
 home: https://github.com/getnora-io/nora
