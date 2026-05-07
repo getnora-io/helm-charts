@@ -1,0 +1,72 @@
+name: Bump appVersion
+
+on:
+  repository_dispatch:
+    types: [nora-release]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump versions in Chart.yaml
+        id: bump
+        run: |
+          NEW_APP="${{ github.event.client_payload.version }}"
+          if [ -z "$NEW_APP" ]; then
+            echo "::error::No version in payload"
+            exit 1
+          fi
+
+          CHART="charts/nora/Chart.yaml"
+          CURRENT_APP=$(grep '^appVersion:' "$CHART" | sed 's/appVersion: *"\(.*\)"/\1/')
+          echo "Current appVersion: $CURRENT_APP"
+          echo "New appVersion:     $NEW_APP"
+
+          if [ "$CURRENT_APP" = "$NEW_APP" ]; then
+            echo "Already up to date"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Bump chart patch version
+          CHART_VER=$(grep '^version:' "$CHART" | awk '{print $2}')
+          MAJOR=$(echo "$CHART_VER" | cut -d. -f1)
+          MINOR=$(echo "$CHART_VER" | cut -d. -f2)
+          PATCH=$(echo "$CHART_VER" | cut -d. -f3)
+          NEW_CHART="${MAJOR}.${MINOR}.$((PATCH + 1))"
+
+          sed -i "s/^version: .*/version: ${NEW_CHART}/" "$CHART"
+          sed -i "s/^appVersion: .*/appVersion: \"${NEW_APP}\"/" "$CHART"
+
+          echo "Chart version: $CHART_VER -> $NEW_CHART"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "new_app=$NEW_APP" >> "$GITHUB_OUTPUT"
+          echo "new_chart=$NEW_CHART" >> "$GITHUB_OUTPUT"
+
+      - name: Create PR
+        if: steps.bump.outputs.skip != 'true'
+        run: |
+          BRANCH="chore/bump-appversion-${{ steps.bump.outputs.new_app }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add charts/nora/Chart.yaml
+          git commit -m "chore(nora): bump appVersion to ${{ steps.bump.outputs.new_app }}"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "chore(nora): bump appVersion to ${{ steps.bump.outputs.new_app }}" \
+            --body "Automated bump triggered by [nora v${{ steps.bump.outputs.new_app }}](https://github.com/getnora-io/nora/releases/tag/v${{ steps.bump.outputs.new_app }}) release.
+
+          - appVersion: \`${{ steps.bump.outputs.new_app }}\`
+          - chart version: \`${{ steps.bump.outputs.new_chart }}\`"
+
+          gh pr merge --auto --squash "$BRANCH"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
