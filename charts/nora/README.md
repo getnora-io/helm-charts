@@ -162,7 +162,7 @@ extraEnv:
 
 > **Note:** Audit log is written to `/data/` (emptyDir when `persistence.enabled: false`). Audit data is ephemeral without persistence. For production with S3, consider a log aggregator (Fluentd/Promtail) to capture audit events from pod logs. Single replica recommended when using emptyDir for audit storage.
 
-## Registires
+## Registries
 
 Enable all registries:
 ```yaml
