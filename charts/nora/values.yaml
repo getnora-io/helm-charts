@@ -106,6 +106,17 @@ config:
     interval: 86400
     rules: []
 
+  # -- Rate limiting (token bucket). See https://getnora.dev/configuration/rate-limits/
+  # Env overrides (NORA_RATE_LIMIT_*) still apply if set via extraEnv.
+  rate_limit:
+    enabled: true
+    auth_rps: 1
+    auth_burst: 5
+    upload_rps: 200
+    upload_burst: 500
+    general_rps: 100
+    general_burst: 200
+
 # -- Name of an existing Secret to mount as /config/secrets.toml.
 # Use this to keep registry credentials out of values.yaml.
 # The Secret should contain a key "secrets.toml" with TOML content, e.g.:
