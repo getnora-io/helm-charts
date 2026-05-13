@@ -67,3 +67,14 @@ data:
     {{- end }}
     {{- end }}
     {{- end }}
+
+    [rate_limit]
+    enabled = {{ .Values.config.rate_limit.enabled }}
+    {{- if .Values.config.rate_limit.enabled }}
+    auth_rps = {{ .Values.config.rate_limit.auth_rps }}
+    auth_burst = {{ .Values.config.rate_limit.auth_burst }}
+    upload_rps = {{ .Values.config.rate_limit.upload_rps }}
+    upload_burst = {{ .Values.config.rate_limit.upload_burst }}
+    general_rps = {{ .Values.config.rate_limit.general_rps }}
+    general_burst = {{ .Values.config.rate_limit.general_burst }}
+    {{- end }}
