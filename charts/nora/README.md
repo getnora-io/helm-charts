@@ -87,6 +87,82 @@ config:
     general_burst: 200
 ```
 
+### Authentication
+
+Maps to `[auth]` (and optionally `[auth.oidc]`) in `config.toml`.
+
+#### Basic auth (htpasswd)
+
+Create a bcrypt htpasswd file locally, then store it in a Secret:
+
+```bash
+htpasswd -Bc /tmp/users.htpasswd admin
+kubectl create secret generic nora-htpasswd \
+  --from-file=users.htpasswd=/tmp/users.htpasswd
+```
+
+```yaml
+config:
+  auth:
+    enabled: true
+    token_storage: data/tokens
+    anonymous_read: false
+    htpasswd:
+      existingSecret: nora-htpasswd
+```
+
+The chart mounts the Secret at `/etc/nora/users.htpasswd` and sets `htpasswd_file` in `config.toml` automatically. Override the path with `config.auth.htpasswd_file` if needed.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.auth.enabled` | Enable authentication | `false` |
+| `config.auth.htpasswd_file` | Explicit htpasswd path in the container | `""` (auto when Secret is set) |
+| `config.auth.anonymous_read` | Allow unauthenticated reads | `false` |
+| `config.auth.token_storage` | API token storage path | `data/tokens` |
+| `config.auth.htpasswd.existingSecret` | Secret with htpasswd file | `""` |
+| `config.auth.htpasswd.secretKey` | Key in the Secret | `users.htpasswd` |
+| `config.auth.htpasswd.mountPath` | Mount directory | `/etc/nora` |
+
+#### OIDC
+
+Role rules use glob patterns on the JWT `sub` claim; first match wins.
+
+```yaml
+config:
+  auth:
+    enabled: true
+    anonymous_read: false
+    oidc:
+      enabled: true
+      leeway_secs: 60
+      jwks_cache_secs: 300
+      providers:
+        - name: github-actions
+          issuer: https://token.actions.githubusercontent.com
+          audience: nora
+          algorithms:
+            - RS256
+            - ES256
+          max_token_lifetime_secs: 900
+          enabled: true
+          role_rules:
+            - pattern: "repo:myorg/*:ref:refs/heads/main"
+              role: write
+            - pattern: "repo:myorg/*"
+              role: read
+```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.auth.oidc.enabled` | Enable OIDC JWT auth | `false` |
+| `config.auth.oidc.leeway_secs` | Clock skew tolerance (seconds) | `60` |
+| `config.auth.oidc.jwks_cache_secs` | JWKS cache TTL (seconds) | `300` |
+| `config.auth.oidc.providers` | OIDC provider list | `[]` |
+
+Per provider: `name`, `issuer`, `audience`, `algorithms`, `max_token_lifetime_secs`, `enabled`, optional `jwks_uri`, and `role_rules` (`pattern`, `role`).
+
+You can still use `NORA_AUTH_*` env vars via `extraEnv`; they take precedence over `config.toml` when set.
+
 ### Rate limiting
 
 Maps to NORA’s `[rate_limit]` in `config.toml`. Tuning guide: [Rate limits configuration](https://getnora.dev/configuration/rate-limits/).
@@ -231,6 +307,30 @@ config:
 - `conan`
 
 ## Testing
+
+### Unit tests (helm-unittest)
+
+```bash
+helm plugin install https://github.com/helm-unittest/helm-unittest --version v1.1.0 --verify=false
+helm unittest charts/nora
+```
+
+Tests live in `charts/nora/tests/`:
+
+| Suite | Coverage |
+|-------|----------|
+| `configmap_test.yaml` | `config.toml`: auth, OIDC, S3, docker upstreams, retention, rate limits, `public_url` |
+| `deployment_test.yaml` | image, probes, volumes, env, scheduling, service account |
+| `service_test.yaml` | Service type, port, naming |
+| `ingress_test.yaml` | Ingress rules, TLS, annotations |
+| `httproute_test.yaml` | Gateway API HTTPRoute |
+| `pvc_test.yaml` | persistence on/off, storage class |
+| `serviceaccount_test.yaml` | create/skip, annotations |
+| `test_connection_test.yaml` | `helm test` hook pod |
+
+### Post-install hook
+
+After deploying to a cluster:
 
 ```bash
 helm test nora
