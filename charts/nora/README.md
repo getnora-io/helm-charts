@@ -311,7 +311,7 @@ config:
 ### Unit tests (helm-unittest)
 
 ```bash
-helm plugin install https://github.com/helm-unittest/helm-unittest --version v1.1.0
+helm plugin install https://github.com/helm-unittest/helm-unittest --version v1.1.0 --verify=false
 helm unittest charts/nora
 ```
 
