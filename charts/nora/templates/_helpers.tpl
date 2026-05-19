@@ -60,9 +60,23 @@ Create the name of the service account to use.
 {{- end }}
 
 {{/*
-Image reference.
+Image reference. Tag defaults to Chart.appVersion; set image.tag to override.
 */}}
 {{- define "nora.image" -}}
-{{- $tag := default .Chart.AppVersion .Values.image.tag }}
+{{- $tag := .Chart.AppVersion }}
+{{- if .Values.image.tag }}
+{{- $tag = .Values.image.tag }}
+{{- end }}
 {{- printf "%s:%s" .Values.image.repository $tag }}
+{{- end }}
+
+{{/*
+Resolved htpasswd file path for config.toml (explicit htpasswd_file or Secret mount).
+*/}}
+{{- define "nora.auth.htpasswdFile" -}}
+{{- if .Values.config.auth.htpasswd_file }}
+{{- .Values.config.auth.htpasswd_file }}
+{{- else if .Values.config.auth.htpasswd.existingSecret }}
+{{- printf "%s/%s" .Values.config.auth.htpasswd.mountPath (.Values.config.auth.htpasswd.secretKey | default "users.htpasswd") }}
+{{- end }}
 {{- end }}

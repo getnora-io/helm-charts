@@ -80,6 +80,11 @@ spec:
               mountPath: /config/secrets
               readOnly: true
             {{- end }}
+            {{- if .Values.config.auth.htpasswd.existingSecret }}
+            - name: htpasswd
+              mountPath: {{ .Values.config.auth.htpasswd.mountPath }}
+              readOnly: true
+            {{- end }}
             - name: data
               mountPath: /data
             - name: tmp
@@ -92,6 +97,14 @@ spec:
         - name: secrets-config
           secret:
             secretName: {{ .Values.existingSecret }}
+        {{- end }}
+        {{- if .Values.config.auth.htpasswd.existingSecret }}
+        - name: htpasswd
+          secret:
+            secretName: {{ .Values.config.auth.htpasswd.existingSecret }}
+            items:
+              - key: {{ .Values.config.auth.htpasswd.secretKey }}
+                path: {{ .Values.config.auth.htpasswd.secretKey }}
         {{- end }}
         - name: data
           {{- if .Values.persistence.enabled }}

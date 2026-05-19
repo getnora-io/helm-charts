@@ -68,6 +68,46 @@ data:
     {{- end }}
     {{- end }}
 
+    {{- if .Values.config.auth.enabled }}
+    {{- $htpasswdFile := include "nora.auth.htpasswdFile" . }}
+
+    [auth]
+    enabled = {{ .Values.config.auth.enabled }}
+    {{- if $htpasswdFile }}
+    htpasswd_file = {{ $htpasswdFile | quote }}
+    {{- end }}
+    token_storage = {{ .Values.config.auth.token_storage | quote }}
+    anonymous_read = {{ .Values.config.auth.anonymous_read }}
+    {{- if .Values.config.auth.oidc.enabled }}
+
+    [auth.oidc]
+    enabled = {{ .Values.config.auth.oidc.enabled }}
+    leeway_secs = {{ .Values.config.auth.oidc.leeway_secs }}
+    jwks_cache_secs = {{ .Values.config.auth.oidc.jwks_cache_secs }}
+    {{- range .Values.config.auth.oidc.providers }}
+
+    [[auth.oidc.providers]]
+    name = {{ .name | quote }}
+    issuer = {{ .issuer | quote }}
+    audience = {{ .audience | quote }}
+    {{- if .algorithms }}
+    algorithms = [{{- range $i, $v := .algorithms }}{{- if $i }}, {{ end }}{{ $v | quote }}{{- end }}]
+    {{- end }}
+    max_token_lifetime_secs = {{ .max_token_lifetime_secs }}
+    enabled = {{ .enabled | default true }}
+    {{- if .jwks_uri }}
+    jwks_uri = {{ .jwks_uri | quote }}
+    {{- end }}
+    {{- range .role_rules }}
+
+    [[auth.oidc.providers.role_rules]]
+    pattern = {{ .pattern | quote }}
+    role = {{ .role | quote }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+
     [rate_limit]
     enabled = {{ .Values.config.rate_limit.enabled }}
     {{- if .Values.config.rate_limit.enabled }}
