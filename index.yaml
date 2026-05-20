@@ -5,6 +5,33 @@ entries:
       artifacthub.io/category: integration-delivery
     apiVersion: v2
     appVersion: 0.9.0
+    created: "2026-05-20T08:36:11.986716187Z"
+    description: NORA — a container registry proxy with caching and garbage collection
+    digest: d0f144c52fb77b765a8f009dc8942e958f2a41ee839818cabadb017979e90c7d
+    home: https://github.com/getnora-io/nora
+    icon: https://avatars.githubusercontent.com/u/257139033?v=4
+    keywords:
+    - registry
+    - container
+    - proxy
+    - cache
+    - oci
+    - artifacts
+    - docker
+    maintainers:
+    - name: getnora-io
+      url: https://github.com/getnora-io
+    name: nora
+    sources:
+    - https://github.com/getnora-io/nora
+    type: application
+    urls:
+    - https://github.com/getnora-io/helm-charts/releases/download/nora-0.3.9/nora-0.3.9.tgz
+    version: 0.3.9
+  - annotations:
+      artifacthub.io/category: integration-delivery
+    apiVersion: v2
+    appVersion: 0.9.0
     created: "2026-05-19T07:26:36.07884087Z"
     description: NORA — a container registry proxy with caching and garbage collection
     digest: d8dc8550f0da7dafa6b734639bf1665a8e0fdbc78e12b51f8a0a243f27d47cfc
@@ -487,4 +514,4 @@ entries:
     urls:
     - https://github.com/getnora-io/helm-charts/releases/download/nora-0.1.5/nora-0.1.5.tgz
     version: 0.1.5
-generated: "2026-05-19T07:26:36.078977946Z"
+generated: "2026-05-20T08:36:11.986858605Z"
