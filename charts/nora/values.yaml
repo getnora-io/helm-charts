@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/getnora-io/nora
-  # -- Overrides the image tag. Defaults to Chart.appVersion.
+  # -- Image tag. Leave empty to use Chart.appVersion (recommended).
   tag: ""
   pullPolicy: IfNotPresent
 
@@ -105,6 +105,45 @@ config:
     enabled: false
     interval: 86400
     rules: []
+
+  # -- Authentication. Maps to [auth] and [auth.oidc] in config.toml.
+  auth:
+    enabled: false
+    # -- Basic auth via htpasswd file. Set explicitly or leave empty when using htpasswd.existingSecret.
+    htpasswd_file: ""
+    # -- Allow unauthenticated read (pull/browse); writes still require auth.
+    anonymous_read: false
+    # -- API token storage path (under /data when relative).
+    token_storage: "data/tokens"
+    # -- Mount htpasswd credentials from an existing Secret (recommended).
+    htpasswd:
+      existingSecret: ""
+      # -- Secret key containing the htpasswd file body.
+      secretKey: users.htpasswd
+      # -- Directory where the Secret key is mounted as a file.
+      mountPath: /etc/nora
+    oidc:
+      enabled: false
+      # -- Clock skew tolerance for JWT validation.
+      leeway_secs: 60
+      # -- JWKS key cache TTL.
+      jwks_cache_secs: 300
+      providers: []
+      # Example (GitHub Actions OIDC; set anonymous_read: true for public pulls):
+      #  - name: github-actions
+      #    issuer: https://token.actions.githubusercontent.com
+      #    audience: nora
+      #    algorithms:
+      #      - RS256
+      #      - ES256
+      #    max_token_lifetime_secs: 900
+      #    enabled: true
+      #    # jwks_uri: https://...  # optional JWKS endpoint override
+      #    role_rules:
+      #      - pattern: "repo:myorg/*:ref:refs/heads/main"
+      #        role: write
+      #      - pattern: "repo:myorg/*"
+      #        role: read
 
   # -- Rate limiting (token bucket). See https://getnora.dev/configuration/rate-limits/
   # Env overrides (NORA_RATE_LIMIT_*) still apply if set via extraEnv.
