@@ -17,6 +17,8 @@ data:
     public_url = {{ printf "%s://%s" $scheme $host | quote }}
     {{- else if and .Values.httpRoute.enabled .Values.httpRoute.hostnames }}
     public_url = {{ printf "https://%s" (index .Values.httpRoute.hostnames 0) | quote }}
+    {{- else }}
+    public_url = {{ printf "http://localhost:%d" (int .Values.config.server.port) | quote }}
     {{- end }}
 
     {{- if .Values.config.registries }}
