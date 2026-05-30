@@ -17,6 +17,8 @@ data:
     public_url = {{ printf "%s://%s" $scheme $host | quote }}
     {{- else if and .Values.httpRoute.enabled .Values.httpRoute.hostnames }}
     public_url = {{ printf "https://%s" (index .Values.httpRoute.hostnames 0) | quote }}
+    {{- else }}
+    {{- fail "config.server.public_url is required when ingress and httpRoute are both disabled. Set config.server.public_url in your values (e.g. https://registry.example.com)." }}
     {{- end }}
 
     {{- if .Values.config.registries }}
