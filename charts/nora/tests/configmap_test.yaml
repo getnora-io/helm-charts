@@ -1,6 +1,11 @@
 suite: configmap
 templates:
   - templates/configmap.yaml
+# public_url is mandatory when ingress and httpRoute are both disabled. Supply it
+# suite-wide for the cases that don't exercise ingress/httpRoute; the derive cases
+# below reset it to "" so auto-derivation from ingress/httpRoute is still tested.
+set:
+  config.server.public_url: https://registry.example.com
 tests:
   - it: renders default config without auth section
     asserts:
@@ -84,6 +89,7 @@ tests:
 
   - it: derives public_url from ingress with TLS
     set:
+      config.server.public_url: ""
       ingress.enabled: true
       ingress.hosts:
         - host: registry.example.com
@@ -130,6 +136,7 @@ tests:
 
   - it: derives public_url from HTTPRoute hostnames
     set:
+      config.server.public_url: ""
       httpRoute.enabled: true
       httpRoute.hostnames:
         - registry.example.com
@@ -140,6 +147,7 @@ tests:
 
   - it: derives public_url from ingress without TLS
     set:
+      config.server.public_url: ""
       ingress.enabled: true
       ingress.hosts:
         - host: registry.local
