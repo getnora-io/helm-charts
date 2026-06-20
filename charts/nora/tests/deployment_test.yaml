@@ -2,6 +2,11 @@ suite: deployment
 templates:
   - templates/deployment.yaml
   - templates/configmap.yaml
+# public_url is mandatory when ingress and httpRoute are both disabled. These
+# tests render the Deployment (which embeds the configmap checksum) without an
+# ingress, so supply public_url suite-wide. See the accepted note in values.yaml.
+set:
+  config.server.public_url: https://registry.example.com
 tests:
   - it: renders a Deployment with default volumes
     template: templates/deployment.yaml

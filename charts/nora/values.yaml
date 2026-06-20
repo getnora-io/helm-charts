@@ -75,7 +75,11 @@ config:
     host: "0.0.0.0"
     port: 4000
     # -- Public URL for UI install commands and auth realm.
-    # Auto-derived from ingress/httpRoute if empty.
+    # Auto-derived from ingress/httpRoute when either is enabled.
+    # REQUIRED (chart fails to render) when ingress AND httpRoute are both
+    # disabled — there is no safe default for a registry's public URL, since a
+    # wrong value would emit broken install commands in the UI. Workaround: set
+    # this explicitly, or enable ingress/httpRoute so it can be derived.
     # Set explicitly for non-standard setups (CDN, reverse proxy, NodePort).
     # Example: "https://registry.example.com"
     public_url: ""

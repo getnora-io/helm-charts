@@ -36,8 +36,11 @@ jobs:
       - name: Chart unit tests
         run: helm unittest charts/nora
 
-      - name: Helm template (defaults)
-        run: helm template nora charts/nora/ > /dev/null
+      - name: Helm template (smoke)
+        # public_url is required when ingress and httpRoute are both disabled, so
+        # the bare-defaults smoke must supply it. With ingress/httpRoute enabled
+        # it is auto-derived (covered by the "auth + ingress" template step below).
+        run: helm template nora charts/nora/ --set config.server.public_url=https://registry.example.com > /dev/null
 
       - name: Helm template (auth + ingress)
         run: |
@@ -55,4 +58,5 @@ jobs:
       - name: Helm template (registries selection)
         run: |
           helm template nora charts/nora/ \
+            --set config.server.public_url=https://registry.example.com \
             --set 'config.registries.enable={docker,npm}' > /dev/null
