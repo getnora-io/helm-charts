@@ -2,8 +2,8 @@ apiVersion: v2
 name: nora
 description: NORA — lightweight multi-format artifact registry (Docker, Maven, npm, PyPI, Cargo, NuGet, and more)
 type: application
-version: 0.3.15
-appVersion: "0.9.5"
+version: 0.3.16
+appVersion: "0.9.6"
 annotations:
   artifacthub.io/category: integration-delivery
 home: https://github.com/getnora-io/nora
