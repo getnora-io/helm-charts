@@ -85,6 +85,18 @@ spec:
               mountPath: {{ .Values.config.auth.htpasswd.mountPath }}
               readOnly: true
             {{- end }}
+            {{- if .Values.config.curation.blocklist.existingConfigMap }}
+            - name: blocklist
+              mountPath: {{ printf "%s/%s" .Values.config.curation.blocklist.mountPath (.Values.config.curation.blocklist.configMapKey | default "blocklist.json") }}
+              subPath: {{ .Values.config.curation.blocklist.configMapKey | default "blocklist.json" }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.config.curation.allowlist.existingConfigMap }}
+            - name: allowlist
+              mountPath: {{ printf "%s/%s" .Values.config.curation.allowlist.mountPath (.Values.config.curation.allowlist.configMapKey | default "allowlist.json") }}
+              subPath: {{ .Values.config.curation.allowlist.configMapKey | default "allowlist.json" }}
+              readOnly: true
+            {{- end }}
             - name: data
               mountPath: /data
             - name: tmp
@@ -105,6 +117,22 @@ spec:
             items:
               - key: {{ .Values.config.auth.htpasswd.secretKey }}
                 path: {{ .Values.config.auth.htpasswd.secretKey }}
+        {{- end }}
+        {{- if .Values.config.curation.blocklist.existingConfigMap }}
+        - name: blocklist
+          configMap:
+            name: {{ .Values.config.curation.blocklist.existingConfigMap }}
+            items:
+              - key: {{ .Values.config.curation.blocklist.configMapKey | default "blocklist.json" }}
+                path: {{ .Values.config.curation.blocklist.configMapKey | default "blocklist.json" }}
+        {{- end }}
+        {{- if .Values.config.curation.allowlist.existingConfigMap }}
+        - name: allowlist
+          configMap:
+            name: {{ .Values.config.curation.allowlist.existingConfigMap }}
+            items:
+              - key: {{ .Values.config.curation.allowlist.configMapKey | default "allowlist.json" }}
+                path: {{ .Values.config.curation.allowlist.configMapKey | default "allowlist.json" }}
         {{- end }}
         - name: data
           {{- if .Values.persistence.enabled }}

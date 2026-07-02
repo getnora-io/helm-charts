@@ -283,3 +283,130 @@ tests:
             name: secrets-config
             mountPath: /config/secrets
             readOnly: true
+
+  - it: mounts blocklist from existingConfigMap
+    template: templates/deployment.yaml
+    set:
+      config.curation.blocklist.existingConfigMap: nora-blocklist
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: blocklist
+            mountPath: /etc/nora/blocklist.json
+            subPath: blocklist.json
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: blocklist
+            configMap:
+              name: nora-blocklist
+              items:
+                - key: blocklist.json
+                  path: blocklist.json
+
+  - it: mounts allowlist from existingConfigMap
+    template: templates/deployment.yaml
+    set:
+      config.curation.allowlist.existingConfigMap: nora-allowlist
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: allowlist
+            mountPath: /etc/nora/allowlist.json
+            subPath: allowlist.json
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: allowlist
+            configMap:
+              name: nora-allowlist
+              items:
+                - key: allowlist.json
+                  path: allowlist.json
+
+  - it: mounts both blocklist and allowlist from ConfigMaps
+    template: templates/deployment.yaml
+    set:
+      config.curation.blocklist.existingConfigMap: nora-blocklist
+      config.curation.allowlist.existingConfigMap: nora-allowlist
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: blocklist
+            mountPath: /etc/nora/blocklist.json
+            subPath: blocklist.json
+            readOnly: true
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: allowlist
+            mountPath: /etc/nora/allowlist.json
+            subPath: allowlist.json
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: blocklist
+            configMap:
+              name: nora-blocklist
+              items:
+                - key: blocklist.json
+                  path: blocklist.json
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: allowlist
+            configMap:
+              name: nora-allowlist
+              items:
+                - key: allowlist.json
+                  path: allowlist.json
+
+  - it: mounts blocklist with custom configMapKey and mountPath
+    template: templates/deployment.yaml
+    set:
+      config.curation.blocklist.existingConfigMap: my-blocklist
+      config.curation.blocklist.configMapKey: deny.json
+      config.curation.blocklist.mountPath: /secrets/curate
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: blocklist
+            mountPath: /secrets/curate/deny.json
+            subPath: deny.json
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: blocklist
+            configMap:
+              name: my-blocklist
+              items:
+                - key: deny.json
+                  path: deny.json
+
+  - it: does not mount blocklist/allowlist volumes when not configured
+    template: templates/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: blocklist
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: allowlist
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: blocklist
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: allowlist

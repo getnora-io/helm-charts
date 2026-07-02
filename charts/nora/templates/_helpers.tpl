@@ -80,3 +80,40 @@ Resolved htpasswd file path for config.toml (explicit htpasswd_file or Secret mo
 {{- printf "%s/%s" .Values.config.auth.htpasswd.mountPath (.Values.config.auth.htpasswd.secretKey | default "users.htpasswd") }}
 {{- end }}
 {{- end }}
+
+{{/*
+Resolved blocklist file path for config.toml (explicit blocklist_path or ConfigMap mount).
+*/}}
+{{- define "nora.curation.blocklistPath" -}}
+{{- if .Values.config.curation.blocklist_path }}
+{{- .Values.config.curation.blocklist_path }}
+{{- else if .Values.config.curation.blocklist.existingConfigMap }}
+{{- printf "%s/%s" .Values.config.curation.blocklist.mountPath (.Values.config.curation.blocklist.configMapKey | default "blocklist.json") }}
+{{- end }}
+{{- end }}
+
+{{/*
+Resolved allowlist file path for config.toml (explicit allowlist_path or ConfigMap mount).
+*/}}
+{{- define "nora.curation.allowlistPath" -}}
+{{- if .Values.config.curation.allowlist_path }}
+{{- .Values.config.curation.allowlist_path }}
+{{- else if .Values.config.curation.allowlist.existingConfigMap }}
+{{- printf "%s/%s" .Values.config.curation.allowlist.mountPath (.Values.config.curation.allowlist.configMapKey | default "allowlist.json") }}
+{{- end }}
+{{- end }}
+
+{{/*
+Whether curation volumes should be rendered (blocklist or allowlist mounted via ConfigMap).
+*/}}
+{{- define "nora.curation.hasBlocklistVolume" -}}
+{{- .Values.config.curation.blocklist.existingConfigMap }}
+{{- end }}
+
+{{- define "nora.curation.hasAllowlistVolume" -}}
+{{- .Values.config.curation.allowlist.existingConfigMap }}
+{{- end }}
+
+{{- define "nora.curation.hasVolume" -}}
+{{- or (include "nora.curation.hasBlocklistVolume" .) (include "nora.curation.hasAllowlistVolume" .) }}
+{{- end }}

@@ -305,3 +305,92 @@ tests:
       - matchRegex:
           path: data["config.toml"]
           pattern: 'general_burst = 300'
+
+  - it: renders curation section with mode only
+    set:
+      config.curation.mode: enforce
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '\[curation\]'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'mode = "enforce"'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path'
+
+  - it: renders curation blocklist_path from existingConfigMap
+    set:
+      config.curation.blocklist.existingConfigMap: nora-blocklist
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '\[curation\]'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path = "/etc/nora/blocklist\.json"'
+
+  - it: renders curation allowlist_path from existingConfigMap
+    set:
+      config.curation.allowlist.existingConfigMap: nora-allowlist
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'allowlist_path = "/etc/nora/allowlist\.json"'
+
+  - it: renders explicit blocklist_path over mount
+    set:
+      config.curation.blocklist_path: /data/blocklist.json
+      config.curation.blocklist.existingConfigMap: nora-blocklist
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path = "/data/blocklist\.json"'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '/etc/nora/blocklist\.json'
+
+  - it: renders explicit allowlist_path over mount
+    set:
+      config.curation.allowlist_path: /data/allowlist.json
+      config.curation.allowlist.existingConfigMap: nora-allowlist
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'allowlist_path = "/data/allowlist\.json"'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '/etc/nora/allowlist\.json'
+
+  - it: renders both blocklist and allowlist paths
+    set:
+      config.curation.mode: enforce
+      config.curation.blocklist.existingConfigMap: nora-blocklist
+      config.curation.allowlist.existingConfigMap: nora-allowlist
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'mode = "enforce"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path = "/etc/nora/blocklist\.json"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'allowlist_path = "/etc/nora/allowlist\.json"'
+
+  - it: renders curation with custom mountPath and configMapKey
+    set:
+      config.curation.blocklist.existingConfigMap: my-blocklist
+      config.curation.blocklist.configMapKey: deny.json
+      config.curation.blocklist.mountPath: /secrets/curate
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path = "/secrets/curate/deny\.json"'
+
+  - it: omits curation section when not configured
+    asserts:
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '\[curation\]'

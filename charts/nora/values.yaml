@@ -149,6 +149,27 @@ config:
       #      - pattern: "repo:myorg/*"
       #        role: read
 
+  # -- Curation (blocklist / allowlist). Maps to [curation] in config.toml.
+  # See https://getnora.dev/configuration/curation/
+  curation:
+    mode: ""
+    # -- Explicit blocklist file path. Leave empty when using blocklist.existingConfigMap.
+    blocklist_path: ""
+    # -- Explicit allowlist file path. Leave empty when using allowlist.existingConfigMap.
+    allowlist_path: ""
+    blocklist:
+      existingConfigMap: ""
+      # -- ConfigMap key containing the blocklist JSON.
+      configMapKey: blocklist.json
+      # -- Directory where the file is mounted.
+      mountPath: /etc/nora
+    allowlist:
+      existingConfigMap: ""
+      # -- ConfigMap key containing the allowlist JSON.
+      configMapKey: allowlist.json
+      # -- Directory where the file is mounted.
+      mountPath: /etc/nora
+
   # -- Rate limiting (token bucket). See https://getnora.dev/configuration/rate-limits/
   # Env overrides (NORA_RATE_LIMIT_*) still apply if set via extraEnv.
   rate_limit:
