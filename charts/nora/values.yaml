@@ -160,6 +160,47 @@ config:
     general_rps: 100
     general_burst: 200
 
+  # -- Curation (blocklist/allowlist, release-age gating). Maps to [curation] in
+  # config.toml. See https://getnora.dev/configuration/curation/
+  # The [curation] section is only rendered when curation is actually configured
+  # (mode != "off", a blocklist/allowlist is mounted, or min_release_age /
+  # require_integrity is set) — default values leave the rendered config unchanged.
+  # Env overrides (NORA_CURATION_*) still apply if set via extraEnv.
+  curation:
+    # -- Curation mode: "off" (default, pass-through), "audit" (evaluate + log,
+    # never block) or "enforce" (block on deny). blocklist/allowlist below take
+    # effect only when mode is "audit" or "enforce".
+    mode: "off"
+    # -- Filter-error behavior: "closed" (fail-safe, block) or "open" (allow).
+    on_failure: "closed"
+    # -- Require integrity metadata (checksums) on allowlisted artifacts.
+    require_integrity: false
+    # -- Minimum release age before an artifact is allowed (e.g. "7d", "24h", "1w").
+    # Empty disables the release-age gate.
+    min_release_age: ""
+    # -- Blocklist JSON. Mount from an existing Secret or ConfigMap (same pattern
+    # as config.auth.htpasswd). When existingSecret/existingConfigMap is set,
+    # blocklist_path is auto-wired to <mountPath>/<key>, so the path is never
+    # specified twice. existingSecret wins if both are set.
+    blocklist:
+      existingSecret: ""
+      existingConfigMap: ""
+      # -- Key inside the Secret/ConfigMap holding the blocklist JSON body.
+      key: blocklist.json
+      # -- Directory the key is mounted into (a sibling of /etc/nora, so it never
+      # collides with the htpasswd mount). The file lands at <mountPath>/<key>.
+      mountPath: /etc/nora-curation/blocklist
+      # -- Explicit blocklist_path, used only when no existingSecret/existingConfigMap
+      # is set (e.g. the file is baked into the image or supplied via extraVolumes).
+      path: ""
+    # -- Allowlist JSON. Same shape as blocklist.
+    allowlist:
+      existingSecret: ""
+      existingConfigMap: ""
+      key: allowlist.json
+      mountPath: /etc/nora-curation/allowlist
+      path: ""
+
 # -- Name of an existing Secret to mount as /config/secrets.toml.
 # Use this to keep registry credentials out of values.yaml.
 # The Secret should contain a key "secrets.toml" with TOML content, e.g.:

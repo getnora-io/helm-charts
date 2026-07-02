@@ -181,6 +181,56 @@ You can still override with `NORA_RATE_LIMIT_*` env vars via `extraEnv` (they ta
 | `config.rate_limit.general_rps` | General traffic sustained RPS | `100` |
 | `config.rate_limit.general_burst` | General traffic burst | `200` |
 
+### Curation (blocklist / allowlist)
+
+Maps to `[curation]` in `config.toml`. See the [curation guide](https://getnora.dev/configuration/curation/).
+
+Store the blocklist (or allowlist) JSON in a Secret or ConfigMap, then reference it — the chart mounts the file and wires `blocklist_path` / `allowlist_path` automatically:
+
+```bash
+kubectl create configmap nora-blocklist --from-file=blocklist.json=blocklist.json
+# or, to keep it opaque:
+kubectl create secret generic nora-blocklist --from-file=blocklist.json=blocklist.json
+```
+
+```yaml
+config:
+  curation:
+    mode: enforce            # off | audit | enforce (default off)
+    blocklist:
+      existingConfigMap: nora-blocklist   # or existingSecret
+      # key: blocklist.json               # default
+```
+
+The chart mounts the key at `<mountPath>/<key>` (default `/etc/nora-curation/blocklist/blocklist.json`, a sibling of the htpasswd mount) and sets `blocklist_path` in `config.toml` — no need to specify the path twice. The `[curation]` section is only rendered when curation is actually configured, so defaults leave existing installs unchanged. `existingSecret` wins if both sources are set; set `blocklist.path` directly if the file is supplied another way (baked into the image, `extraVolumes`).
+
+Example `blocklist.json`:
+
+```json
+{
+  "version": 1,
+  "rules": [
+    { "registry": "npm", "name": "event-stream", "version": "3.3.6", "reason": "CVE-2018-16396" },
+    { "registry": "*", "name": "log4j*", "version": "2.*", "reason": "CVE-2021-44228 Log4Shell" }
+  ]
+}
+```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.curation.mode` | `off`, `audit`, or `enforce` | `off` |
+| `config.curation.on_failure` | Filter-error behavior: `closed` or `open` | `closed` |
+| `config.curation.require_integrity` | Require integrity metadata on allowlisted artifacts | `false` |
+| `config.curation.min_release_age` | Minimum release age gate (e.g. `7d`, `24h`) | `""` |
+| `config.curation.blocklist.existingSecret` | Secret holding the blocklist JSON | `""` |
+| `config.curation.blocklist.existingConfigMap` | ConfigMap holding the blocklist JSON | `""` |
+| `config.curation.blocklist.key` | Key in the Secret/ConfigMap | `blocklist.json` |
+| `config.curation.blocklist.mountPath` | Mount directory | `/etc/nora-curation/blocklist` |
+| `config.curation.blocklist.path` | Explicit `blocklist_path` (when not mounted) | `""` |
+| `config.curation.allowlist.*` | Same fields as `blocklist` | `allowlist.json`, `/etc/nora-curation/allowlist` |
+
+You can still override with `NORA_CURATION_*` env vars via `extraEnv` (they take precedence over `config.toml`).
+
 ### Environment Variables
 
 Use `extraEnv` for plain values or references to Secrets/ConfigMaps:

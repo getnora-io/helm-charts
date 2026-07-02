@@ -305,3 +305,74 @@ tests:
       - matchRegex:
           path: data["config.toml"]
           pattern: 'general_burst = 300'
+
+  - it: omits curation section by default
+    asserts:
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '\[curation\]'
+
+  - it: wires blocklist_path from mounted secret in enforce mode
+    set:
+      config.curation.mode: enforce
+      config.curation.blocklist.existingSecret: nora-blocklist
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '\[curation\]'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'mode = "enforce"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'on_failure = "closed"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path = "/etc/nora-curation/blocklist/blocklist\.json"'
+
+  - it: wires allowlist_path from mounted configmap with custom key and mountPath
+    set:
+      config.curation.mode: audit
+      config.curation.allowlist.existingConfigMap: nora-allow
+      config.curation.allowlist.key: allow.json
+      config.curation.allowlist.mountPath: /opt/al
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'mode = "audit"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'allowlist_path = "/opt/al/allow\.json"'
+
+  - it: renders curation section for min_release_age even when mode is off
+    set:
+      config.curation.min_release_age: 7d
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '\[curation\]\nmode = "off"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'min_release_age = "7d"'
+
+  - it: renders require_integrity and on_failure open
+    set:
+      config.curation.mode: enforce
+      config.curation.on_failure: open
+      config.curation.require_integrity: true
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'on_failure = "open"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'require_integrity = true'
+
+  - it: uses explicit blocklist path when no mount is configured
+    set:
+      config.curation.mode: enforce
+      config.curation.blocklist.path: /data/blocklist.json
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'blocklist_path = "/data/blocklist\.json"'
