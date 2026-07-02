@@ -120,3 +120,24 @@ data:
     general_rps = {{ .Values.config.rate_limit.general_rps }}
     general_burst = {{ .Values.config.rate_limit.general_burst }}
     {{- end }}
+
+    {{- $blocklistPath := include "nora.curation.blocklistPath" . | trim }}
+    {{- $allowlistPath := include "nora.curation.allowlistPath" . | trim }}
+    {{- if or (ne .Values.config.curation.mode "off") $blocklistPath $allowlistPath .Values.config.curation.min_release_age .Values.config.curation.require_integrity }}
+
+    [curation]
+    mode = {{ .Values.config.curation.mode | quote }}
+    on_failure = {{ .Values.config.curation.on_failure | quote }}
+    {{- if $blocklistPath }}
+    blocklist_path = {{ $blocklistPath | quote }}
+    {{- end }}
+    {{- if $allowlistPath }}
+    allowlist_path = {{ $allowlistPath | quote }}
+    {{- end }}
+    {{- if .Values.config.curation.require_integrity }}
+    require_integrity = {{ .Values.config.curation.require_integrity }}
+    {{- end }}
+    {{- if .Values.config.curation.min_release_age }}
+    min_release_age = {{ .Values.config.curation.min_release_age | quote }}
+    {{- end }}
+    {{- end }}

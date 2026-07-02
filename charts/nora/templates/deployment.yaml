@@ -85,6 +85,16 @@ spec:
               mountPath: {{ .Values.config.auth.htpasswd.mountPath }}
               readOnly: true
             {{- end }}
+            {{- if or .Values.config.curation.blocklist.existingSecret .Values.config.curation.blocklist.existingConfigMap }}
+            - name: curation-blocklist
+              mountPath: {{ .Values.config.curation.blocklist.mountPath }}
+              readOnly: true
+            {{- end }}
+            {{- if or .Values.config.curation.allowlist.existingSecret .Values.config.curation.allowlist.existingConfigMap }}
+            - name: curation-allowlist
+              mountPath: {{ .Values.config.curation.allowlist.mountPath }}
+              readOnly: true
+            {{- end }}
             - name: data
               mountPath: /data
             - name: tmp
@@ -105,6 +115,38 @@ spec:
             items:
               - key: {{ .Values.config.auth.htpasswd.secretKey }}
                 path: {{ .Values.config.auth.htpasswd.secretKey }}
+        {{- end }}
+        {{- $blocklist := .Values.config.curation.blocklist }}
+        {{- if $blocklist.existingSecret }}
+        - name: curation-blocklist
+          secret:
+            secretName: {{ $blocklist.existingSecret }}
+            items:
+              - key: {{ $blocklist.key | default "blocklist.json" }}
+                path: {{ $blocklist.key | default "blocklist.json" }}
+        {{- else if $blocklist.existingConfigMap }}
+        - name: curation-blocklist
+          configMap:
+            name: {{ $blocklist.existingConfigMap }}
+            items:
+              - key: {{ $blocklist.key | default "blocklist.json" }}
+                path: {{ $blocklist.key | default "blocklist.json" }}
+        {{- end }}
+        {{- $allowlist := .Values.config.curation.allowlist }}
+        {{- if $allowlist.existingSecret }}
+        - name: curation-allowlist
+          secret:
+            secretName: {{ $allowlist.existingSecret }}
+            items:
+              - key: {{ $allowlist.key | default "allowlist.json" }}
+                path: {{ $allowlist.key | default "allowlist.json" }}
+        {{- else if $allowlist.existingConfigMap }}
+        - name: curation-allowlist
+          configMap:
+            name: {{ $allowlist.existingConfigMap }}
+            items:
+              - key: {{ $allowlist.key | default "allowlist.json" }}
+                path: {{ $allowlist.key | default "allowlist.json" }}
         {{- end }}
         - name: data
           {{- if .Values.persistence.enabled }}

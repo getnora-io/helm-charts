@@ -283,3 +283,89 @@ tests:
             name: secrets-config
             mountPath: /config/secrets
             readOnly: true
+
+  - it: does not mount curation volumes by default
+    template: templates/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: curation-blocklist
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: curation-allowlist
+
+  - it: mounts blocklist from an existing secret
+    template: templates/deployment.yaml
+    set:
+      config.curation.blocklist.existingSecret: nora-blocklist
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: curation-blocklist
+            mountPath: /etc/nora-curation/blocklist
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: curation-blocklist
+            secret:
+              secretName: nora-blocklist
+              items:
+                - key: blocklist.json
+                  path: blocklist.json
+
+  - it: mounts blocklist from an existing configmap
+    template: templates/deployment.yaml
+    set:
+      config.curation.blocklist.existingConfigMap: nora-blocklist-cm
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: curation-blocklist
+            configMap:
+              name: nora-blocklist-cm
+              items:
+                - key: blocklist.json
+                  path: blocklist.json
+
+  - it: mounts allowlist from a secret with custom key and mountPath
+    template: templates/deployment.yaml
+    set:
+      config.curation.allowlist.existingSecret: nora-allow
+      config.curation.allowlist.key: allow.json
+      config.curation.allowlist.mountPath: /opt/al
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: curation-allowlist
+            mountPath: /opt/al
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: curation-allowlist
+            secret:
+              secretName: nora-allow
+              items:
+                - key: allow.json
+                  path: allow.json
+
+  - it: does not create a curation volume for an explicit path
+    template: templates/deployment.yaml
+    set:
+      config.curation.mode: enforce
+      config.curation.blocklist.path: /data/blocklist.json
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: curation-blocklist
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: curation-blocklist

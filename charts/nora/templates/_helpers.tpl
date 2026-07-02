@@ -80,3 +80,29 @@ Resolved htpasswd file path for config.toml (explicit htpasswd_file or Secret mo
 {{- printf "%s/%s" .Values.config.auth.htpasswd.mountPath (.Values.config.auth.htpasswd.secretKey | default "users.htpasswd") }}
 {{- end }}
 {{- end }}
+
+{{/*
+Resolved curation blocklist_path for config.toml.
+Derived from the mounted Secret/ConfigMap (<mountPath>/<key>) when one is set,
+otherwise the explicit .path, otherwise empty.
+*/}}
+{{- define "nora.curation.blocklistPath" -}}
+{{- $bl := .Values.config.curation.blocklist -}}
+{{- if or $bl.existingSecret $bl.existingConfigMap -}}
+{{- printf "%s/%s" $bl.mountPath ($bl.key | default "blocklist.json") -}}
+{{- else if $bl.path -}}
+{{- $bl.path -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Resolved curation allowlist_path for config.toml. Mirrors blocklistPath.
+*/}}
+{{- define "nora.curation.allowlistPath" -}}
+{{- $al := .Values.config.curation.allowlist -}}
+{{- if or $al.existingSecret $al.existingConfigMap -}}
+{{- printf "%s/%s" $al.mountPath ($al.key | default "allowlist.json") -}}
+{{- else if $al.path -}}
+{{- $al.path -}}
+{{- end -}}
+{{- end }}
