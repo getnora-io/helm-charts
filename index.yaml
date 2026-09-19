@@ -4,6 +4,38 @@ entries:
   - annotations:
       artifacthub.io/category: integration-delivery
     apiVersion: v2
+    appVersion: 1.3.2
+    created: "2026-09-19T21:28:44.05363689Z"
+    description: NORA — lightweight multi-format artifact registry (Docker, Maven,
+      npm, PyPI, Cargo, NuGet, and more)
+    digest: 18db5c11713235b33b6df511577d61dd6861b8a7a3c8145a8ebb02f63d3ba265
+    home: https://github.com/getnora-io/nora
+    icon: https://avatars.githubusercontent.com/u/257139033?v=4
+    keywords:
+    - registry
+    - artifact-registry
+    - proxy
+    - cache
+    - oci
+    - docker
+    - maven
+    - npm
+    - pypi
+    - cargo
+    - nuget
+    maintainers:
+    - name: getnora-io
+      url: https://github.com/getnora-io
+    name: nora
+    sources:
+    - https://github.com/getnora-io/nora
+    type: application
+    urls:
+    - https://github.com/getnora-io/helm-charts/releases/download/nora-0.4.10/nora-0.4.10.tgz
+    version: 0.4.10
+  - annotations:
+      artifacthub.io/category: integration-delivery
+    apiVersion: v2
     appVersion: 1.3.1
     created: "2026-09-09T08:38:54.361963157Z"
     description: NORA — lightweight multi-format artifact registry (Docker, Maven,
@@ -1053,4 +1085,4 @@ entries:
     urls:
     - https://github.com/getnora-io/helm-charts/releases/download/nora-0.1.5/nora-0.1.5.tgz
     version: 0.1.5
-generated: "2026-09-09T08:38:54.362284992Z"
+generated: "2026-09-19T21:28:44.054038497Z"
