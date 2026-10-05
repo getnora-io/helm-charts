@@ -204,16 +204,21 @@ tests:
           path: data["config.toml"]
           pattern: 'auth = "user:token"'
 
-  - it: renders retention rules
+  - it: renders retention rule with all fields as typed TOML
     set:
       config.retention.enabled: true
       config.retention.rules:
         - registry: docker
-          max_age_days: 30
+          name_glob: "myapp/*"
+          keep_last: 5
+          older_than_days: 30
+          exclude_tags:
+            - latest
+            - "v*"
     asserts:
       - matchRegex:
           path: data["config.toml"]
-          pattern: 'enabled = true'
+          pattern: '\[retention\]\nenabled = true'
       - matchRegex:
           path: data["config.toml"]
           pattern: '\[\[retention\.rules\]\]'
@@ -222,7 +227,74 @@ tests:
           pattern: 'registry = "docker"'
       - matchRegex:
           path: data["config.toml"]
-          pattern: 'max_age_days = "30"'
+          pattern: 'name_glob = "myapp/\*"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'keep_last = 5'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: 'keep_last = "5"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'older_than_days = 30'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'exclude_tags = \["latest", "v\*"\]'
+
+  - it: renders only the retention fields that are set
+    set:
+      config.retention.enabled: true
+      config.retention.rules:
+        - registry: docker
+          keep_last: 3
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'keep_last = 3'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: 'name_glob'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: 'older_than_days'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: 'exclude_tags'
+
+  - it: renders keep_last zero as an integer rather than dropping it
+    set:
+      config.retention.enabled: true
+      config.retention.rules:
+        - registry: docker
+          keep_last: 0
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'keep_last = 0'
+
+  - it: renders multiple retention rules
+    set:
+      config.retention.enabled: true
+      config.retention.rules:
+        - registry: docker
+          keep_last: 5
+          exclude_tags:
+            - latest
+        - registry: maven
+          older_than_days: 90
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'registry = "docker"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'exclude_tags = \["latest"\]'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'registry = "maven"'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'older_than_days = 90'
 
   - it: renders auth without htpasswd_file when not configured
     set:
