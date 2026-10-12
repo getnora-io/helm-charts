@@ -1,0 +1,103 @@
+suite: configmap typed values
+templates:
+  - templates/configmap.yaml
+# Helm reads YAML numbers as float64 and prints 1,000,000 or more in exponent form
+# (1e+06), which NORA refuses as a float where it expects an integer. Every integer
+# setting is checked at a value that large, and the output must be a plain integer.
+set:
+  config.server.public_url: https://registry.example.com
+tests:
+  - it: renders large intervals and timeouts as integers
+    set:
+      config.docker.proxy_timeout: 1000000
+      config.gc.interval: 2592000
+      config.retention.interval: 2592000
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^proxy_timeout = 1000000$'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^\[gc\]\nenabled = \w+\ninterval = 2592000$'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^\[retention\]\nenabled = \w+\ninterval = 2592000$'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '\de\+\d'
+
+  - it: renders large rate limits as integers
+    set:
+      config.rate_limit.enabled: true
+      config.rate_limit.auth_rps: 1000000
+      config.rate_limit.auth_burst: 2000000
+      config.rate_limit.upload_rps: 3000000
+      config.rate_limit.upload_burst: 4000000
+      config.rate_limit.general_rps: 5000000
+      config.rate_limit.general_burst: 6000000
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^auth_rps = 1000000\nauth_burst = 2000000\nupload_rps = 3000000\nupload_burst = 4000000\ngeneral_rps = 5000000\ngeneral_burst = 6000000$'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '\de\+\d'
+
+  - it: renders large OIDC durations as integers
+    set:
+      config.auth.enabled: true
+      config.auth.htpasswd.existingSecret: nora-htpasswd
+      config.auth.oidc.enabled: true
+      config.auth.oidc.leeway_secs: 1000000
+      config.auth.oidc.jwks_cache_secs: 2000000
+      config.auth.oidc.providers:
+        - name: gitlab
+          issuer: https://gitlab.example.com
+          audience: nora
+          max_token_lifetime_secs: 31536000
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^leeway_secs = 1000000\njwks_cache_secs = 2000000$'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^max_token_lifetime_secs = 31536000$'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '\de\+\d'
+
+  - it: leaves max_token_lifetime_secs to NORA's default when a provider omits it
+    set:
+      config.auth.enabled: true
+      config.auth.htpasswd.existingSecret: nora-htpasswd
+      config.auth.oidc.enabled: true
+      config.auth.oidc.providers:
+        - name: github-actions
+          issuer: https://token.actions.githubusercontent.com
+          audience: nora
+    asserts:
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: 'max_token_lifetime_secs'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^audience = "nora"\nenabled = true$'
+
+  - it: renders a provider with enabled false as disabled
+    set:
+      config.auth.enabled: true
+      config.auth.htpasswd.existingSecret: nora-htpasswd
+      config.auth.oidc.enabled: true
+      config.auth.oidc.providers:
+        - name: gh
+          issuer: https://token.actions.githubusercontent.com
+          audience: nora
+          max_token_lifetime_secs: 900
+          enabled: false
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^max_token_lifetime_secs = 900\nenabled = false$'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^max_token_lifetime_secs = 900\nenabled = true$'
