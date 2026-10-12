@@ -8,7 +8,7 @@ data:
   config.toml: |
     [server]
     host = {{ .Values.config.server.host | quote }}
-    port = {{ .Values.config.server.port | default 4000 }}
+    port = {{ .Values.config.server.port | default 4000 | int64 }}
     {{- if .Values.config.server.public_url }}
     public_url = {{ .Values.config.server.public_url | quote }}
     {{- else if and .Values.ingress.enabled .Values.ingress.hosts }}
@@ -42,7 +42,7 @@ data:
 
     {{- if or .Values.config.docker.upstreams .Values.config.docker.proxy_timeout }}
     [docker]
-    proxy_timeout = {{ .Values.config.docker.proxy_timeout | default 60 }}
+    proxy_timeout = {{ .Values.config.docker.proxy_timeout | default 60 | int64 }}
     {{- range .Values.config.docker.upstreams }}
 
     [[docker.upstreams]]
@@ -55,18 +55,18 @@ data:
 
     [gc]
     enabled = {{ .Values.config.gc.enabled }}
-    interval = {{ .Values.config.gc.interval }}
+    interval = {{ .Values.config.gc.interval | int64 }}
 
     [retention]
     enabled = {{ .Values.config.retention.enabled }}
-    interval = {{ .Values.config.retention.interval }}
+    interval = {{ .Values.config.retention.interval | int64 }}
     {{- if .Values.config.retention.rules }}
     {{- range .Values.config.retention.rules }}
 
     [[retention.rules]]
     {{- range $k, $v := . }}
     {{- if or (eq $k "keep_last") (eq $k "older_than_days") }}
-    {{ $k }} = {{ $v }}
+    {{ $k }} = {{ $v | int64 }}
     {{- else if eq $k "exclude_tags" }}
     {{ $k }} = [{{- range $i, $t := $v }}{{- if $i }}, {{ end }}{{ $t | quote }}{{- end }}]
     {{- else }}
@@ -90,8 +90,8 @@ data:
 
     [auth.oidc]
     enabled = {{ .Values.config.auth.oidc.enabled }}
-    leeway_secs = {{ .Values.config.auth.oidc.leeway_secs }}
-    jwks_cache_secs = {{ .Values.config.auth.oidc.jwks_cache_secs }}
+    leeway_secs = {{ .Values.config.auth.oidc.leeway_secs | int64 }}
+    jwks_cache_secs = {{ .Values.config.auth.oidc.jwks_cache_secs | int64 }}
     {{- range .Values.config.auth.oidc.providers }}
 
     [[auth.oidc.providers]]
@@ -101,8 +101,10 @@ data:
     {{- if .algorithms }}
     algorithms = [{{- range $i, $v := .algorithms }}{{- if $i }}, {{ end }}{{ $v | quote }}{{- end }}]
     {{- end }}
-    max_token_lifetime_secs = {{ .max_token_lifetime_secs }}
-    enabled = {{ .enabled | default true }}
+    {{- if hasKey . "max_token_lifetime_secs" }}
+    max_token_lifetime_secs = {{ .max_token_lifetime_secs | int64 }}
+    {{- end }}
+    enabled = {{ if hasKey . "enabled" }}{{ .enabled }}{{ else }}true{{ end }}
     {{- if .jwks_uri }}
     jwks_uri = {{ .jwks_uri | quote }}
     {{- end }}
@@ -119,12 +121,12 @@ data:
     [rate_limit]
     enabled = {{ .Values.config.rate_limit.enabled }}
     {{- if .Values.config.rate_limit.enabled }}
-    auth_rps = {{ .Values.config.rate_limit.auth_rps }}
-    auth_burst = {{ .Values.config.rate_limit.auth_burst }}
-    upload_rps = {{ .Values.config.rate_limit.upload_rps }}
-    upload_burst = {{ .Values.config.rate_limit.upload_burst }}
-    general_rps = {{ .Values.config.rate_limit.general_rps }}
-    general_burst = {{ .Values.config.rate_limit.general_burst }}
+    auth_rps = {{ .Values.config.rate_limit.auth_rps | int64 }}
+    auth_burst = {{ .Values.config.rate_limit.auth_burst | int64 }}
+    upload_rps = {{ .Values.config.rate_limit.upload_rps | int64 }}
+    upload_burst = {{ .Values.config.rate_limit.upload_burst | int64 }}
+    general_rps = {{ .Values.config.rate_limit.general_rps | int64 }}
+    general_burst = {{ .Values.config.rate_limit.general_burst | int64 }}
     {{- end }}
 
     {{- $blocklistPath := include "nora.curation.blocklistPath" . | trim }}

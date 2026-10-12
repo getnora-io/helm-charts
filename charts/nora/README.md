@@ -159,7 +159,7 @@ config:
 | `config.auth.oidc.jwks_cache_secs` | JWKS cache TTL (seconds) | `300` |
 | `config.auth.oidc.providers` | OIDC provider list | `[]` |
 
-Per provider: `name`, `issuer`, `audience`, `algorithms`, `max_token_lifetime_secs`, `enabled`, optional `jwks_uri`, and `role_rules` (`pattern`, `role`).
+Per provider: `name`, `issuer`, `audience`, `algorithms`, `max_token_lifetime_secs` (omit it to keep NORA's default, 900), `enabled` (default `true`), optional `jwks_uri`, and `role_rules` (`pattern`, `role`).
 
 You can still use `NORA_AUTH_*` env vars via `extraEnv`; they take precedence over `config.toml` when set.
 
