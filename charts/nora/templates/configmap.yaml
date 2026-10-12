@@ -65,7 +65,13 @@ data:
 
     [[retention.rules]]
     {{- range $k, $v := . }}
+    {{- if or (eq $k "keep_last") (eq $k "older_than_days") }}
+    {{ $k }} = {{ $v }}
+    {{- else if eq $k "exclude_tags" }}
+    {{ $k }} = [{{- range $i, $t := $v }}{{- if $i }}, {{ end }}{{ $t | quote }}{{- end }}]
+    {{- else }}
     {{ $k }} = {{ $v | quote }}
+    {{- end }}
     {{- end }}
     {{- end }}
     {{- end }}
