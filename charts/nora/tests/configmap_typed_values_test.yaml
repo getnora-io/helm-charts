@@ -101,3 +101,18 @@ tests:
       - notMatchRegex:
           path: data["config.toml"]
           pattern: '(?m)^max_token_lifetime_secs = 900\nenabled = true$'
+
+  - it: renders large retention rule integers as integers
+    set:
+      config.retention.enabled: true
+      config.retention.rules:
+        - registry: maven
+          keep_last: 1000000
+          older_than_days: 3650000
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: '(?m)^keep_last = 1000000\nolder_than_days = 3650000\nregistry = "maven"$'
+      - notMatchRegex:
+          path: data["config.toml"]
+          pattern: '\de\+\d'
