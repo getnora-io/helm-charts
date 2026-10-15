@@ -1,5 +1,17 @@
 replicaCount: 1
 
+# -- Deployment update strategy (maps to Deployment spec.strategy). Defaults to
+# Recreate because the default single-replica topology mounts a ReadWriteOnce
+# PVC (see persistence): a RollingUpdate surges a second Pod that cannot attach
+# the volume when it is scheduled onto another node (Multi-Attach error),
+# stalling the rollout. Recreate terminates the old Pod before creating the new
+# one — a brief downtime that is acceptable for a single replica. For a
+# multi-replica deployment on ReadWriteMany or S3 storage, set
+# type: RollingUpdate. Set to null (strategy: null) to omit the field entirely
+# and fall back to the Kubernetes default (RollingUpdate).
+strategy:
+  type: Recreate
+
 image:
   repository: ghcr.io/getnora-io/nora
   # -- Image tag. Leave empty to use Chart.appVersion (recommended).
