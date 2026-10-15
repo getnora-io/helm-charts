@@ -1,0 +1,37 @@
+suite: deployment update strategy
+templates:
+  - templates/deployment.yaml
+  - templates/configmap.yaml
+# public_url is mandatory when ingress and httpRoute are both disabled, and the
+# Deployment embeds the configmap checksum, so supply it suite-wide.
+set:
+  config.server.public_url: https://registry.example.com
+tests:
+  - it: defaults to Recreate so a single-replica ReadWriteOnce PVC never hits Multi-Attach
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+  - it: honours an explicit RollingUpdate for multi-replica ReadWriteMany or S3 topologies
+    template: templates/deployment.yaml
+    set:
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+      - equal:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 0
+  - it: omits spec.strategy when set to null, falling back to the Kubernetes default
+    template: templates/deployment.yaml
+    set:
+      strategy: null
+    asserts:
+      - notExists:
+          path: spec.strategy
