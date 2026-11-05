@@ -83,8 +83,8 @@ config:
     auth_burst: 5
     upload_rps: 200
     upload_burst: 500
-    general_rps: 100
-    general_burst: 200
+    general_rps: 1000
+    general_burst: 2000
 ```
 
 ### Authentication
@@ -174,12 +174,12 @@ You can still override with `NORA_RATE_LIMIT_*` env vars via `extraEnv` (they ta
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `config.rate_limit.enabled` | Enable HTTP rate limiting | `true` |
-| `config.rate_limit.auth_rps` | Auth endpoint sustained RPS | `1` |
-| `config.rate_limit.auth_burst` | Auth endpoint burst | `5` |
-| `config.rate_limit.upload_rps` | Upload (push) sustained RPS | `200` |
-| `config.rate_limit.upload_burst` | Upload burst | `500` |
-| `config.rate_limit.general_rps` | General traffic sustained RPS | `100` |
-| `config.rate_limit.general_burst` | General traffic burst | `200` |
+| `config.rate_limit.auth_rps` | Token API sustained RPS | `1` |
+| `config.rate_limit.auth_burst` | Token API burst | `5` |
+| `config.rate_limit.upload_rps` | Registry writes (push, upload, delete) sustained RPS | `200` |
+| `config.rate_limit.upload_burst` | Registry write burst | `500` |
+| `config.rate_limit.general_rps` | Registry reads (pull, download, index) sustained RPS | `1000` |
+| `config.rate_limit.general_burst` | Registry read burst | `2000` |
 
 ### Curation (blocklist / allowlist)
 

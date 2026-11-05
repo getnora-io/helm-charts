@@ -161,16 +161,17 @@ config:
       #      - pattern: "repo:myorg/*"
       #        role: read
 
-  # -- Rate limiting (token bucket). See https://getnora.dev/configuration/rate-limits/
-  # Env overrides (NORA_RATE_LIMIT_*) still apply if set via extraEnv.
+  # -- Rate limiting (token bucket), per client. See https://getnora.dev/configuration/rate-limits/
+  # Registry reads (pull, download, index) spend general_*, writes (push, upload, delete)
+  # upload_*, the token API auth_*. Env overrides (NORA_RATE_LIMIT_*) still apply if set via extraEnv.
   rate_limit:
     enabled: true
     auth_rps: 1
     auth_burst: 5
     upload_rps: 200
     upload_burst: 500
-    general_rps: 100
-    general_burst: 200
+    general_rps: 1000
+    general_burst: 2000
 
   # -- Curation (blocklist/allowlist, release-age gating). Maps to [curation] in
   # config.toml. See https://getnora.dev/configuration/curation/

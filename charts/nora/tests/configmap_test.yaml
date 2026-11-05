@@ -365,6 +365,21 @@ tests:
           path: data["config.toml"]
           pattern: '\[auth\.oidc\]'
 
+  - it: reads default to the rates NORA itself defaults to, not below the write limits
+    asserts:
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'general_rps = 1000\n'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'general_burst = 2000\n'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'upload_rps = 200\n'
+      - matchRegex:
+          path: data["config.toml"]
+          pattern: 'upload_burst = 500\n'
+
   - it: renders rate limit tuning when enabled
     set:
       config.rate_limit.enabled: true
