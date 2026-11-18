@@ -61,13 +61,20 @@ Create the name of the service account to use.
 
 {{/*
 Image reference. Tag defaults to Chart.appVersion; set image.tag to override.
+A digits-only tag reaches the template as a number: int64 from `--set`,
+float64 from a values file. printf "%s" on a number renders "%!s(int64=…)"
+and toString on a whole float64 renders an exponent (1.234567e+06), so a
+whole float64 goes through int64 first.
 */}}
 {{- define "nora.image" -}}
 {{- $tag := .Chart.AppVersion }}
 {{- if .Values.image.tag }}
 {{- $tag = .Values.image.tag }}
 {{- end }}
-{{- printf "%s:%s" .Values.image.repository $tag }}
+{{- if and (kindIs "float64" $tag) (eq (float64 (int64 $tag)) $tag) }}
+{{- $tag = int64 $tag }}
+{{- end }}
+{{- printf "%s:%s" .Values.image.repository (toString $tag) }}
 {{- end }}
 
 {{/*

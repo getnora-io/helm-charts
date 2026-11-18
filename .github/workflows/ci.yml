@@ -55,6 +55,19 @@ jobs:
             --set existingSecret=nora-secrets \
             --set persistence.enabled=false > /dev/null
 
+      - name: Helm template (digits-only image tag)
+        # `--set image.tag=<digits>` reaches the template as int64, a path
+        # helm-unittest cannot reach (its `set` yields float64). #58.
+        run: |
+          for tag in 1234567 v1.4.6; do
+            image=$(helm template nora charts/nora/ \
+              --set config.server.public_url=https://registry.example.com \
+              --set image.tag="$tag" \
+              | sed -n 's/^ *image: \(ghcr\.io\/getnora-io\/nora:.*\)$/\1/p')
+            echo "image.tag=$tag -> $image"
+            test "$image" = "ghcr.io/getnora-io/nora:$tag"
+          done
+
       - name: Helm template (registries selection)
         run: |
           helm template nora charts/nora/ \
