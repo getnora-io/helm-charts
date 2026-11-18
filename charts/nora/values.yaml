@@ -15,6 +15,8 @@ strategy:
 image:
   repository: ghcr.io/getnora-io/nora
   # -- Image tag. Leave empty to use Chart.appVersion (recommended).
+  # A digits-only tag renders as written. Quote a tag that reads as a decimal
+  # number with trailing zeros: YAML reads `1.40` as 1.4.
   tag: ""
   pullPolicy: IfNotPresent
 
@@ -244,12 +246,20 @@ extraEnv: []
 #         name: nora-s3-credentials
 extraEnvFrom: []
 
+# -- Container resources. NORA holds a whole npm packument in memory per
+# request, so the memory limit scales with concurrent requests times the size
+# of the largest packument served. NORA 1.4.6, ten parallel GETs of the
+# typescript packument (~16 MB), cache hit, 2-CPU Kubernetes node:
+#   512Mi, full document (npm 10) ........... OOM-killed
+#   1Gi, full document ...................... peak ~390Mi
+#   1Gi, abbreviated document (pnpm 10) ..... peak ~760Mi (~1.8Gi on a 12-core host)
+# Raise the limit for heavy npm proxy traffic; see "Resources" in README.md.
 resources:
   requests:
     cpu: 100m
     memory: 128Mi
   limits:
-    memory: 512Mi
+    memory: 1Gi
 
 nodeSelector: {}
 tolerations: []

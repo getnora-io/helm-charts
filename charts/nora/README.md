@@ -283,8 +283,28 @@ resources:
     cpu: 100m
     memory: 128Mi
   limits:
-    memory: 512Mi
+    memory: 1Gi
 ```
+
+NORA reads a whole npm packument into memory for every metadata request, so
+memory grows with the number of concurrent requests times the size of the
+packument (getnora-io/nora#1305). Peaks measured on NORA 1.4.6 with this chart
+on a Kubernetes cluster of 2-CPU nodes, local storage, the `typescript`
+packument (about 16 MB) as a cache hit, five rounds of ten parallel GETs sent
+from a pod in the same namespace:
+
+| Limit | Request | Result |
+|-------|---------|--------|
+| 512Mi (previous default) | full document (as npm 10 asks) | OOM-killed in the first round |
+| 1Gi | full document | all 200, peak ~390Mi |
+| 1Gi | abbreviated document (as pnpm 10 asks) | all 200, peak ~760Mi |
+
+The abbreviated document costs about twice the full one: NORA builds it from
+the full document on every request. On a 12-core host the same ten parallel
+abbreviated requests reached about 1.8Gi, so the peak also depends on how many
+requests the node actually runs at once. If the registry serves pnpm installs
+from many parallel CI jobs, raise the limit above 1Gi and measure with your own
+largest packument.
 
 ## S3 Storage
 
