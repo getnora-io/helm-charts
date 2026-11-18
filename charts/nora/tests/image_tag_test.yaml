@@ -1,0 +1,56 @@
+suite: image tag rendering
+templates:
+  - templates/deployment.yaml
+  - templates/configmap.yaml
+# public_url is mandatory when ingress and httpRoute are both disabled, and the
+# Deployment embeds the configmap checksum, so supply it suite-wide.
+set:
+  config.server.public_url: https://registry.example.com
+tests:
+  # `--set image.tag=1234567` reaches the template as an int64 and a bare
+  # number in a values file as a float64. printf "%s" on either renders
+  # "%!s(int64=1234567)" and the pod fails with InvalidImageName (#58).
+  - it: renders a digits-only tag given as an integer
+    template: templates/deployment.yaml
+    set:
+      image.tag: 1234567
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/getnora-io/nora:1234567
+
+  - it: renders a digits-only tag of eight digits without an exponent
+    template: templates/deployment.yaml
+    set:
+      image.tag: 20261117
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/getnora-io/nora:20261117
+
+  - it: renders a tag that parses as a decimal number
+    template: templates/deployment.yaml
+    set:
+      image.tag: 1.5
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/getnora-io/nora:1.5
+
+  - it: keeps a string tag as written
+    template: templates/deployment.yaml
+    set:
+      image.tag: v1.4.6
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/getnora-io/nora:v1.4.6
+
+  - it: keeps a quoted digits-only tag as written
+    template: templates/deployment.yaml
+    set:
+      image.tag: "0042"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/getnora-io/nora:0042
