@@ -248,12 +248,11 @@ extraEnvFrom: []
 
 # -- Container resources. NORA holds a whole npm packument in memory per
 # request, so the memory limit scales with concurrent requests times the size
-# of the largest packument served. Peaks measured on NORA 1.4.6 under a cgroup
-# memory limit, ten parallel GETs of the typescript packument (~16 MB):
-#   cache hit, local storage ............ ~620Mi (512Mi: OOM-killed)
-#   cache hit, S3 storage ............... ~360Mi
-#   cache miss, local storage ........... ~750Mi
-#   abbreviated form (pnpm 10), cache hit  ~1.8Gi, either storage
+# of the largest packument served. NORA 1.4.6, ten parallel GETs of the
+# typescript packument (~16 MB), cache hit, 2-CPU Kubernetes node:
+#   512Mi, full document (npm 10) ........... OOM-killed
+#   1Gi, full document ...................... peak ~390Mi
+#   1Gi, abbreviated document (pnpm 10) ..... peak ~760Mi (~1.8Gi on a 12-core host)
 # Raise the limit for heavy npm proxy traffic; see "Resources" in README.md.
 resources:
   requests:

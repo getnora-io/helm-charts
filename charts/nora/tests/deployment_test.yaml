@@ -250,8 +250,8 @@ tests:
           path: spec.template.spec.containers[0].resources.limits.memory
           value: 1Gi
 
-  # #57: 512Mi was OOM-killed by ten parallel cache-hit GETs of the typescript
-  # packument (~16 MB) on local storage; the measured peak is about 620Mi.
+  # #57: ten parallel cache-hit GETs of the typescript packument (~16 MB) got
+  # 512Mi OOM-killed; with 1Gi the peak was about 390Mi (2-CPU Kubernetes node).
   - it: defaults the memory limit to 1Gi
     template: templates/deployment.yaml
     asserts:
