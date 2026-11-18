@@ -283,8 +283,26 @@ resources:
     cpu: 100m
     memory: 128Mi
   limits:
-    memory: 512Mi
+    memory: 1Gi
 ```
+
+NORA reads a whole npm packument into memory for every metadata request, so
+memory grows with the number of concurrent requests times the size of the
+packument. Peaks measured on NORA 1.4.6 under a cgroup memory limit, ten
+parallel GETs of the `typescript` packument (about 16 MB):
+
+| Load | Storage | Peak |
+|------|---------|------|
+| Cache hit, full document | local | ~620Mi |
+| Cache hit, full document | S3 | ~360Mi |
+| Cache miss, full document | local | ~750Mi |
+| Cache hit, abbreviated document (as pnpm 10 asks) | local or S3 | ~1.8Gi |
+
+The chart's previous default of 512Mi was OOM-killed by the first row. npm
+10.8 asks for the full document; pnpm 10 asks for the abbreviated one, which
+NORA builds from the full document on every request. If the registry serves
+pnpm installs from many parallel CI jobs, size the limit from the last row:
+about 180Mi per concurrent request for a 16 MB packument.
 
 ## S3 Storage
 
